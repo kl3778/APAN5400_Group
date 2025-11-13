@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Merch Launch Predictor</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 font-sans">
+
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b border-gray-200 py-6 mb-6">
+    <div class="max-w-5xl mx-auto px-6">
+      <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Pop Flow Demo</h1>
+      <p class="text-gray-500 text-lg mt-1">
+        Big-Data-powered timing & category predictions for artist merchandise
+      </p>
+    </div>
+  </header>
+
+  <!-- Artist Selector -->
+  <div class="max-w-5xl mx-auto px-6 mb-4">
+    <label for="artistSelect" class="block text-gray-700 font-semibold mb-2">Select Artist:</label>
+    <select id="artistSelect" class="border border-gray-300 rounded px-3 py-2">
+      <option value="Singer A">Singer A</option>
+      <option value="Singer B">Singer B</option>
+    </select>
+  </div>
+
+  <!-- Main content -->
+  <main class="max-w-5xl mx-auto px-6 space-y-6">
+
+    <!-- Artist Card -->
+    <div class="artist-card bg-white p-6 rounded-xl shadow flex items-center space-x-6">
+      <img id="artistImage" src="/static/placeholder.jpg" class="artist-icon w-24 h-24 rounded-full object-cover" />
+      <div class="flex-1">
+        <div id="artistName" class="artist-name text-xl font-semibold text-gray-800">Loading...</div>
+        <div class="artist-index mt-4">
+          <canvas id="artistIndexGraph" height="100"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Script -->
+  <script>
+    let chartInstance = null;
+
+    async function loadArtist(singerName) {
+  try {
+    const res = await fetch(`/api/playbacks?singer_name=${encodeURIComponent(singerName)}`);
+    const data = await res.json();
+
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+
+    // Update artist name
+    document.querySelector('.artist-name').textContent = data.singer_name;
+
+    // Update artist image
+    document.getElementById('artistImage').src = `/static/${data.icon_filename}`;
+
+    // Render chart
+    const ctx = document.getElementById('artistIndexGraph').getContext('2d');
+    if (chartInstance) chartInstance.destroy();
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.playback_dates,
+        datasets: [{
+          label: 'Daily Playback',
+          data: data.playback_counts,
+          borderColor: 'rgb(128, 90, 250)',
+          borderWidth: 2,
+          tension: 0.3,
+          fill: false,
+          pointBackgroundColor: 'rgb(128, 90, 250)'
+        }]
+      },
+      options: { responsive: true }
+    });
+
+  } catch (err) {
+    console.error("Error fetching artist data:", err);
+  }
+}
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const artistSelect = document.getElementById("artistSelect");
+
+      // Initial load
+      loadArtist(artistSelect.value);
+
+      // Update chart when selection changes
+      artistSelect.addEventListener("change", () => {
+        loadArtist(artistSelect.value);
+      });
+    });
+  </script>
+
+</body>
+</html>
