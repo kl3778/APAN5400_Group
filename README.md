@@ -6,86 +6,86 @@
 
 This module handles data acquisition from 3 platforms:
 
-Spotify Web API
+- Spotify Web API
 
-YouTube Data API v3
+- YouTube Data API v3
 
-Google Trends (via pytrends)
+- Google Trends (via pytrends)
 
 It supports:
 
-API integration
+- API integration
 
-Data pulling [frequency to be defined]
+- Data pulling [frequency to be defined]
 
-Data validation
+- Data validation
 
-Data export (JSON / CSV)
+- Data export (JSON / CSV)
 
 🎧 Spotify Data Acquisition
 
 Endpoints used:
 
-GET /v1/artists/{id}
+- GET /v1/artists/{id}
 
-GET /v1/artists/{id}/top-tracks
+- GET /v1/artists/{id}/top-tracks
 
-GET /v1/audio-features/{id}
+- GET /v1/audio-features/{id}
 
 Outputs:
 
-Artist metadata JSON
+- Artist JSON
 
-Track metadata JSON/CSV
+- Track JSON/CSV
 
-Audio features JSON [require double check ]
+- Audio features JSON [require double check ]
 
 🎬 YouTube Data Acquisition
 
 Endpoints used:
 
-channels().list
+- channels().list
 
-videos().list
+- videos().list
 
-search().list
+- search().list
 
 Outputs:
 
-Channel metadata JSON
+- Channel metadata JSON
 
-Video metadata JSON/CSV
+- Video metadata JSON/CSV
 
 🔥 Google Trends Data Acquisition
 
-Implemented via pytrends
+- Implemented via pytrends
 
-Time series (interest over time)
+- Time series (interest over time)
 
-Interest by region
+- Interest by region
 
-Related queries
+- Related queries
 
 Outputs:
 
-JSON + CSV files with timestamp [been blocked...sample file not available]
+- JSON + CSV files with timestamp [been blocked...sample file not available]
 
 🔍 Validation- check list
 
-Missing keys
+- Missing keys
 
-Datatype check
+- Datatype check
 
-Numerical range (e.g., popularity 0–100)
+- Numerical range (e.g., popularity 0–100)
 
-Empty dataframe detection
+- Empty dataframe detection
 
 🧩 Final Deliverables
 
-Raw JSON data files
+- Raw JSON data files
 
-Clean CSV tables
+- Clean CSV tables
 
-Data Dictionary [version 1 uploaded]
+- Data Dictionary [version 1 uploaded]
 
-Validated metadata ready for ingestion
+- Validated metadata ready for ingestion
