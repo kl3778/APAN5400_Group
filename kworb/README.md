@@ -6,15 +6,25 @@ csv/json
 https://kworb.net/spotify/country/us_daily.html
 
 rank
+
 artist_name
+
 track_name
+
 daily_streams
+
 streams_plus
+
 seven_day
+
 seven_day_plus
+
 total_streams
+
 artist_url
+
 track_url
+
 
 spotify_artist_top10_albums_{today}
 
@@ -25,11 +35,17 @@ consolidated top10 albums per each artist from us_daily_artist_chart
 https://kworb.net/spotify/artist/06HL4z0CvFAxyc27GXpf02_albums.html
 
 artist_name
+
 artist_id
+
 album_name
+
 streams
+
 daily
+
 artist_url
+
 
 spotify_monthly_listners_{today}
 
@@ -38,9 +54,15 @@ csv/json
 2500 artists in chart
 
 rank
+
 artist_name
+
 artist_url
+
 listeners
+
 daily_change
+
 peak_rank
+
 peak_listeners
