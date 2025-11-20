@@ -1,0 +1,208 @@
+<!-- this is comment section. For now we need 3 graph. 
+line chart
+songs bar chart
+geo-map-->>
+
+<!--this is the version 2 for this website.  -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Merch Launch Predictor</title>
+  
+   <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- ECharts -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+  <!-- ECharts USA geography -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/map/js/usa.js"></script>
+</head>
+
+<body class="bg-gray-50 font-sans">
+
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b border-gray-200 py-6 mb-6">
+    <div class="max-w-5xl mx-auto px-6">
+      <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Pop Flow Demo</h1>
+      <p class="text-gray-500 text-lg mt-1">
+        Big-Data-powered timing & category predictions for artist merchandise
+      </p>
+    </div>
+  </header>
+
+  <!-- Artist Selector -->
+  <div class="max-w-5xl mx-auto px-6 mb-4">
+    <label for="artistSelect" class="block text-gray-700 font-semibold mb-2">Select Artist:</label>
+    <select id="artistSelect" class="border border-gray-300 rounded px-3 py-2">
+      <option value="Singer A">Singer A</option>
+      <option value="Singer B">Singer B</option>
+    </select>
+  </div>
+
+  <!-- Main content -->
+  <main class="max-w-5xl mx-auto px-6 space-y-6">
+
+    <!-- Artist Card -->
+    <div class="artist-card bg-white p-6 rounded-xl shadow flex items-center space-x-6">
+      <img id="artistImage" src="/static/placeholder.jpg" class="artist-icon w-24 h-24 rounded-full object-cover" />
+      <div class="flex-1">
+        <div id="artistName" class="artist-name text-xl font-semibold text-gray-800">Loading...</div>
+        <div class="artist-index mt-4">
+          <canvas id="artistIndexGraph" height="100"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Song Popularity Bar Chart -->
+    <div class="bg-white p-6 rounded-xl shadow">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Song Popularity</h2>
+      <canvas id="songBarChart" height="120"></canvas>
+    </div>
+
+    <!-- US Geo Map -->
+    <div class="bg-white p-6 rounded-xl shadow">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">US Top Songs by State</h2>
+      <div id="usMap" style="height: 450px;"></div>
+    </div>
+  </main>
+
+  <!-- Script -->
+  <script>
+    let chartInstanceLine = null;
+    let chartInstanceBar = null;
+
+    async function loadArtist(singerName) {
+      try {
+        // 1️⃣ Playback Line Chart
+        const resPlayback = await fetch(`/api/playbacks?singer_name=${encodeURIComponent(singerName)}`);
+        const dataPlayback = await resPlayback.json();
+        if (dataPlayback.error) { alert(dataPlayback.error); return; }
+
+        document.querySelector('.artist-name').textContent = dataPlayback.singer_name;
+        document.getElementById('artistImage').src = `/static/${dataPlayback.icon_filename}`;
+        renderLineChart(dataPlayback);
+
+        // 2️⃣ Song Popularity Bar Chart
+        const resSongs = await fetch(`/api/songs?singer_name=${encodeURIComponent(singerName)}`);
+        const dataSongs = await resSongs.json();
+        if (!dataSongs.error) renderBarChart(dataSongs);
+
+        // 3️⃣ US Map
+        const resStates = await fetch(`/api/state-map?singer_name=${encodeURIComponent(singerName)}`);
+        const dataStates = await resStates.json();
+        if (!dataStates.error) renderUSMap(dataStates);
+
+      } catch (e) { console.error(e); }
+    }
+
+    /* -----------------------------
+       1️⃣ Playback Trend Line Chart
+       ----------------------------- */
+    function renderLineChart(data) {
+      const ctx = document.getElementById('artistIndexGraph').getContext('2d');
+      if (chartInstanceLine) chartInstanceLine.destroy();
+
+      chartInstanceLine = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.playback_dates,
+          datasets: [{
+            label: 'Daily Playback',
+            data: data.playback_counts,
+            borderColor: 'rgb(128, 90, 250)',
+            borderWidth: 2,
+            tension: 0.3
+          }]
+        }
+      });
+    }
+
+    /* --------------------------------
+       2️⃣ Song Popularity Bar Chart
+       -------------------------------- */
+    function renderBarChart(data) {
+      const ctx = document.getElementById('songBarChart').getContext('2d');
+      if (chartInstanceBar) chartInstanceBar.destroy();
+
+      // placeholder if backend not ready yet
+      const songNames = data.song_names || [];
+      const popularity = data.popularities || [];
+
+      chartInstanceBar = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: songNames,
+          datasets: [{
+            label: "Popularity",
+            data: popularity,
+            backgroundColor: "rgba(128,90,250,0.7)",
+          }]
+        },
+        options:{responsive:true }
+      });
+    }
+
+    /* --------------------------------
+       3️⃣ US State Map (ECharts)
+       -------------------------------- */
+    function renderUSMap(data) {
+      // Dispose old chart if exists
+      const dom = document.getElementById('usMap');
+      if (echarts.getInstanceByDom(dom)) echarts.dispose(dom);
+
+      const map = echarts.init(dom);
+
+      const states = data.states || [];
+      const topSongs = data.top_songs || [];
+
+      // Optional: map abbreviations to full names
+      const stateNameMap = {
+        'AL':'Alabama','AK':'Alaska','AZ':'Arizona','AR':'Arkansas','CA':'California',
+        'CO':'Colorado','CT':'Connecticut','DE':'Delaware','FL':'Florida','GA':'Georgia',
+        'HI':'Hawaii','ID':'Idaho','IL':'Illinois','IN':'Indiana','IA':'Iowa',
+        'KS':'Kansas','KY':'Kentucky','LA':'Louisiana','ME':'Maine','MD':'Maryland',
+        'MA':'Massachusetts','MI':'Michigan','MN':'Minnesota','MS':'Mississippi','MO':'Missouri',
+        'MT':'Montana','NE':'Nebraska','NV':'Nevada','NH':'New Hampshire','NJ':'New Jersey',
+        'NM':'New Mexico','NY':'New York','NC':'North Carolina','ND':'North Dakota','OH':'Ohio',
+        'OK':'Oklahoma','OR':'Oregon','PA':'Pennsylvania','RI':'Rhode Island','SC':'South Carolina',
+        'SD':'South Dakota','TN':'Tennessee','TX':'Texas','UT':'Utah','VT':'Vermont',
+        'VA':'Virginia','WA':'Washington','WV':'West Virginia','WI':'Wisconsin','WY':'Wyoming'
+      };
+
+    const formatted = states.map((s,i) => ({
+      name: stateNameMap[s] || s,
+      value: topSongs[i] ? 1 : 0,
+      top_song: topSongs[i]
+    }));
+
+    map.setOption({
+      tooltip: {
+        formatter: params => `${params.name}<br>Top Song: ${params.data?.top_song || 'N/A'}`
+      },
+      visualMap: { show: false, min: 0, max: 1 },
+      series: [{
+        type: 'map',
+        map: 'USA',
+        roam: true,
+        label: { show: false },
+        data: formatted
+      }]
+    });
+    }
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const artistSelect = document.getElementById("artistSelect");
+      loadArtist(artistSelect.value);
+      artistSelect.addEventListener("change", () => loadArtist(artistSelect.value));
+    });
+  </script>
+
+</body>
+</html>

@@ -144,43 +144,44 @@ function renderUSMap(data) {
   console.log("formatted:", formatted);
 
   map.setOption({
-  tooltip: {
-    trigger: 'item',
-    formatter: params => {
-      const song = params.data?.top_song || "N/A";
-      const state = params.data?.name || params.name || "N/A";
-      return `${state}<br>Top Song: ${song}`;
-    }
-  },
-  visualMap: {
-    min: 1,
-    max: data.length, // or adjust as needed
-    type: 'continuous',
-    orient: 'vertical',
-    left: 'right',
-    top: 'middle',
-    inRange: {
-      color: [
-        '#e3f2fd',
-        '#bbdefb',
-        '#90caf9',
-        '#64b5f6',
-        '#42a5f5',
-        '#2196f3'
-      ]
-    }
-  },
-  series: [{
-    name: 'Top song by state',
-    type: 'map',
-    map: 'USA',
-    roam: true,
-    label: { show: true },
-    emphasis: { label: { show: true } },
-    data: data   // <--- this is your array from the API, passed directly!
-  }]
-});
-
+    tooltip: {
+      trigger: 'item',
+      formatter: params => {
+        const song = params.data?.top_song || "N/A";
+        // show legend index => song mapping in tooltip if useful
+        const id = params.data?.value;
+        const songLabel = id && id > 0 ? (uniqueSongs[id - 1] || song) : "N/A";
+        return `${params.name}<br>Top Song: ${songLabel}`;
+      }
+    },
+    visualMap: {
+     min: 1,
+      max: uniqueSongs.length,
+      type: 'continuous',
+      orient: 'vertical',
+      left: 'right',
+      top: 'middle',
+      inRange: {
+        color: [
+          '#e3f2fd',
+          '#bbdefb',
+          '#90caf9',
+          '#64b5f6',
+          '#42a5f5',
+          '#2196f3'
+        ]
+      }
+    },
+    series: [{
+      name: 'Top song by state',
+      type: 'map',
+      map: 'USA',
+      roam: true,
+      label: { show: false }, // set to true if you want state labels
+      emphasis: { label: { show: true } },
+      data: formatted
+    }]
+  });
 
   console.log("ECharts map rendered.", map);
 }
