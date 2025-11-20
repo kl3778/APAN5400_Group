@@ -1,5 +1,5 @@
 
-spotify_us_daily_artist_{today}
+**spotify_us_daily_artist_{today}**
 
 csv/json
 
@@ -26,7 +26,7 @@ artist_url
 track_url
 
 
-spotify_artist_top10_albums_{today}
+**spotify_artist_top10_albums_{today}**
 
 csv/json
 
@@ -47,7 +47,7 @@ daily
 artist_url
 
 
-spotify_monthly_listners_{today}
+**spotify_monthly_listners_{today}**
 
 csv/json
 
