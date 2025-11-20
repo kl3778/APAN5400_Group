@@ -86,8 +86,15 @@ def api_state_map():
     return jsonify(data)
 
 
-#run app for the "render" platform
+#run this at last
+import webbrowser
+from threading import Timer
+
+def open_browser():
+    webbrowser.open("http://10.206.86.177:5000")
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Render sets PORT automatically
-    app.run(host="0.0.0.0", port=port, debug=True)
+    Timer(1.0, open_browser).start()  # open after 1 second
+    app.run(host="10.206.86.177", port=5000, debug=False)
+
 
