@@ -1,0 +1,82 @@
+[
+  {
+    "artist_id":"2OhUNb01gLwygOizYvTm0e",
+    "track_id":"3tiJUOfAEqIrLFRQgGgdoY",
+    "track_name":"Un Finde | CROSSOVER #2",
+    "popularity":72,
+    "album_name":"Un Finde | CROSSOVER #2",
+    "release_date":"2023-04-04"
+  },
+  {
+    "artist_id":"2OhUNb01gLwygOizYvTm0e",
+    "track_id":"1Hs1uUl8o2VtDp1DABFq0O",
+    "track_name":"Los del Espacio",
+    "popularity":71,
+    "album_name":"Los del Espacio",
+    "release_date":"2023-06-01"
+  },
+  {
+    "artist_id":"2OhUNb01gLwygOizYvTm0e",
+    "track_id":"3KeYEr9ogMBemsOfQIJmZp",
+    "track_name":"Cuando Te Vi | CROSSOVER #5",
+    "popularity":70,
+    "album_name":"Cuando Te Vi | CROSSOVER #5",
+    "release_date":"2024-06-27"
+  },
+  {
+    "artist_id":"2OhUNb01gLwygOizYvTm0e",
+    "track_id":"5AkLEnorFvb7WIJOGqKYVT",
+    "track_name":"Si Un D\u00eda Est\u00e1s Sola | CROSSOVER #7",
+    "popularity":66,
+    "album_name":"Si Un D\u00eda Est\u00e1s Sola | CROSSOVER #7",
+    "release_date":"2024-09-03"
+  },
+  {
+    "artist_id":"2OhUNb01gLwygOizYvTm0e",
+    "track_id":"7w7BrPbOjF5OxChs2dxFve",
+    "track_name":"En La Intimidad | CROSSOVER #1",
+    "popularity":65,
+    "album_name":"En La Intimidad | CROSSOVER #1",
+    "release_date":"2023-02-01"
+  },
+  {
+    "artist_id":"2OhUNb01gLwygOizYvTm0e",
+    "track_id":"5aZ8rf2aPfZrnRWLA7bByo",
+    "track_name":"Pa\u00b4Que Te Acuerdes | CROSSOVER #8",
+    "popularity":64,
+    "album_name":"Pa\u00b4 Que Te Acuerdes | CROSSOVER #8",
+    "release_date":"2024-10-02"
+  },
+  {
+    "artist_id":"2OhUNb01gLwygOizYvTm0e",
+    "track_id":"6Z28dALKtAgZ7AZRfjMQjY",
+    "track_name":"Mentiras | CROSSOVER #3",
+    "popularity":63,
+    "album_name":"Mentiras | CROSSOVER #3",
+    "release_date":"2023-07-25"
+  },
+  {
+    "artist_id":"2OhUNb01gLwygOizYvTm0e",
+    "track_id":"1lSayCmr2lS6ndxELoabIG",
+    "track_name":"L\u00e1grimas | CROSSOVER #4",
+    "popularity":62,
+    "album_name":"L\u00e1grimas | CROSSOVER #4",
+    "release_date":"2023-10-10"
+  },
+  {
+    "artist_id":"2OhUNb01gLwygOizYvTm0e",
+    "track_id":"6ILrPgB1ywnLmdmFWQ73p7",
+    "track_name":"Tocando Madera",
+    "popularity":61,
+    "album_name":"Tocando Madera",
+    "release_date":"2025-10-16"
+  },
+  {
+    "artist_id":"2OhUNb01gLwygOizYvTm0e",
+    "track_id":"73JFuGO9niMXXqmJ2WAMPU",
+    "track_name":"Flashbacks | CROSSOVER #9",
+    "popularity":58,
+    "album_name":"Flashbacks | CROSSOVER #9",
+    "release_date":"2025-05-20"
+  }
+]
