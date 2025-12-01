@@ -70,3 +70,21 @@ total_streams
 artist_url
 
 track_url
+
+**youtube_trending_worldwide_{today}**
+
+csv/json
+
+https://kworb.net/youtube/trending.html
+
+rank
+
+rank_change
+
+artist_name
+
+video_name
+
+view_count
+
+highlights
