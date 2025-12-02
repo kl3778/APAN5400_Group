@@ -40,12 +40,6 @@
     <img id="artistImage" src="/static/placeholder.jpg" class="artist-icon w-24 h-24 rounded-full object-cover" />
     <div class="flex-1">
       <div id="artistName" class="artist-name text-xl font-semibold text-gray-800">Loading...</div>
-      
-      <!-- Recommendation Score -->
-      <div id="recommendationScore" class="mt-2 text-gray-700 font-medium">
-        Recommendation Score: <span id="scoreValue" class="text-purple-600 font-bold">N/A</span>
-      </div>
-
       <div class="artist-index mt-4">
         <canvas id="artistIndexGraph" height="100"></canvas>
       </div>
@@ -183,28 +177,14 @@ function renderUSMap(data) {
     roam: true,
     label: { show: true },
     emphasis: { label: { show: true } },
-    data: formatted   
+    data: formatted   // ✅ FIXED
   }]
 });
 
-// -----------------------------
-// Recommendation Score
-async function renderRecommendationScore(singerName) {
-  try {
-    const res = await fetch(`/api/recommendation?singer_name=${encodeURIComponent(singerName)}`);
-    const data = await res.json();
 
-    if (!data.error) {
-      const scoreEl = document.getElementById('scoreValue');
-      scoreEl.textContent = data.score;
 
-      if (data.score >= 80) scoreEl.className = "text-green-600 font-bold";
-      else if (data.score >= 50) scoreEl.className = "text-yellow-600 font-bold";
-      else scoreEl.className = "text-red-600 font-bold";
-    }
-  } catch (e) { console.error("Failed to load recommendation score:", e); }
+  console.log("ECharts map rendered.", map);
 }
-
 
 
 // -----------------------------
@@ -230,10 +210,6 @@ async function loadArtist(singerName) {
     const dataStates = await resStates.json();
     if (!dataStates.error) renderUSMap(dataStates);
 
-
-    // Recommendation Score ✅
-    await renderRecommendationScore(singerName);
-    
   } catch (e) { console.error(e); }
 }
 // -----------------------------
