@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Merch Launch Predictor</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- ECharts -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+</head>
+
+<body class="bg-gray-50 font-sans">
+
+<header class="bg-white shadow-sm border-b border-gray-200 py-6 mb-6">
+  <div class="max-w-5xl mx-auto px-6">
+    <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Pop Flow Demo</h1>
+    <p class="text-gray-500 text-lg mt-1">
+      Big-Data-powered timing & category predictions for artist merchandise
+    </p>
+  </div>
+</header>
+
+<div class="max-w-5xl mx-auto px-6 mb-4">
+  <label for="artistSelect" class="block text-gray-700 font-semibold mb-2">Select Artist:</label>
+  <select id="artistSelect" class="border border-gray-300 rounded px-3 py-2">
+    <option value="Singer A">Singer A</option>
+    <option value="Singer B">Singer B</option>
+  </select>
+</div>
+
+<main class="max-w-5xl mx-auto px-6 space-y-6">
+  <!-- Artist Card -->
+  <div class="artist-card bg-white p-6 rounded-xl shadow flex items-center space-x-6">
+    <img id="artistImage" src="/static/placeholder.jpg" class="artist-icon w-24 h-24 rounded-full object-cover" />
+    <div class="flex-1">
+      <div id="artistName" class="artist-name text-xl font-semibold text-gray-800">Loading...</div>
+      <div class="artist-index mt-4">
+        <canvas id="artistIndexGraph" height="100"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Song Popularity Bar Chart -->
+  <div class="bg-white p-6 rounded-xl shadow">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Song Popularity</h2>
+    <canvas id="songBarChart" height="120"></canvas>
+  </div>
+
+  <!-- US Geo Map -->
+  <div class="bg-white p-6 rounded-xl shadow">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">US Top Songs by State</h2>
+    <div id="usMap" style="height: 450px;"></div>
+  </div>
+</main>
+
+<script>
+let chartInstanceLine = null;
+let chartInstanceBar = null;
+
+// -----------------------------
+// Line chart
+function renderLineChart(data) {
+  const ctx = document.getElementById('artistIndexGraph').getContext('2d');
+  if (chartInstanceLine) chartInstanceLine.destroy();
+
+  chartInstanceLine = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.playback_dates,
+      datasets: [{
+        label: 'Daily Playback',
+        data: data.playback_counts,
+        borderColor: 'rgb(128, 90, 250)',
+        borderWidth: 2,
+        tension: 0.3
+      }]
+    }
+  });
+}
+
+// -----------------------------
+// Bar chart
+function renderBarChart(data) {
+  const ctx = document.getElementById('songBarChart').getContext('2d');
+  if (chartInstanceBar) chartInstanceBar.destroy();
+
+  const songNames = data.song_names || [];
+  const popularity = data.popularities || [];
+
+  chartInstanceBar = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: songNames,
+      datasets: [{
+        label: "Popularity",
+        data: popularity,
+        backgroundColor: "rgba(128,90,250,0.7)",
+      }]
+    },
+    options:{responsive:true}
+  });
+}
+
+// -----------------------------
+// US Map currently not working. the problem is that the map is not displaying data. just map.
+// -----------------------------
+
+function renderUSMap(data) {
+  const dom = document.getElementById('usMap');
+  // dispose previous instance if exists
+  const prev = echarts.getInstanceByDom(dom);
+  if (prev) prev.dispose();
+
+  const map = echarts.init(dom);
+
+  const states = Array.isArray(data.states) ? data.states : [];
+  const topSongs = Array.isArray(data.top_songs) ? data.top_songs : [];
+
+  // compute unique songs from topSongs array
+  const uniqueSongs = [...new Set(topSongs.filter(s => s != null && s !== ""))];
+
+  // map each song to a numeric id (start from 1 so 0 can mean 'no data')
+  const songToId = new Map(uniqueSongs.map((s, i) => [s, i + 1]));
+
+  // build formatted data; ensure we don't index out of bounds
+  const formatted = states.map((state, i) => {
+    const song = topSongs[i] || null;
+    return {
+      name: state,
+      value: song ? songToId.get(song) : 0, // numeric value used for visual mapping
+      top_song: song || "N/A"
+    };
+  });
+
+  // debug logs (optional)
+  console.log("uniqueSongs:", uniqueSongs);
+  console.log("songToId:", Array.from(songToId.entries()));
+  console.log("formatted:", formatted);
+
+  map.setOption({
+  tooltip: {
+    trigger: 'item',
+    formatter: params => {
+      const song = params.data?.top_song || "N/A";
+      const state = params.data?.name || params.name || "N/A";
+      return `${state}<br>Top Song: ${song}`;
+    }
+  },
+  visualMap: {
+    min: 1,
+    max: uniqueSongs.length,  // ✅ FIXED
+    type: 'continuous',
+    orient: 'vertical',
+    left: 'right',
+    top: 'middle',
+    inRange: {
+      color: [
+        '#e3f2fd',
+        '#bbdefb',
+        '#90caf9',
+        '#64b5f6',
+        '#42a5f5',
+        '#2196f3'
+      ]
+    }
+  },
+  series: [{
+    name: 'Top song by state',
+    type: 'map',
+    map: 'USA',
+    roam: true,
+    label: { show: true },
+    emphasis: { label: { show: true } },
+    data: formatted   // ✅ FIXED
+  }]
+});
+
+
+
+  console.log("ECharts map rendered.", map);
+}
+
+
+// -----------------------------
+// Load artist data
+async function loadArtist(singerName) {
+  try {
+    // Playback Line
+    const resPlayback = await fetch(`/api/playbacks?singer_name=${encodeURIComponent(singerName)}`);
+    const dataPlayback = await resPlayback.json();
+    if (!dataPlayback.error) {
+      document.querySelector('.artist-name').textContent = dataPlayback.singer_name;
+      document.getElementById('artistImage').src = `/static/${dataPlayback.icon_filename}`;
+      renderLineChart(dataPlayback);
+    }
+
+    // Song Bar
+    const resSongs = await fetch(`/api/songs?singer_name=${encodeURIComponent(singerName)}`);
+    const dataSongs = await resSongs.json();
+    if (!dataSongs.error) renderBarChart(dataSongs);
+
+    // US Map
+    const resStates = await fetch(`/api/state-map?singer_name=${encodeURIComponent(singerName)}`);
+    const dataStates = await resStates.json();
+    if (!dataStates.error) renderUSMap(dataStates);
+
+  } catch (e) { console.error(e); }
+}
+// -----------------------------
+// DOMContentLoaded
+document.addEventListener("DOMContentLoaded", () => {
+  const artistSelect = document.getElementById("artistSelect");
+
+  // Load USA map JSON first
+  fetch('/static/usa-states.json')
+    .then(res => res.json())
+    .then(json => {
+      echarts.registerMap('USA', json);
+
+      // Load initial artist
+      loadArtist(artistSelect.value);
+
+      // Handle artist change
+      artistSelect.addEventListener("change", () => loadArtist(artistSelect.value));
+    })
+    .catch(err => console.error("Failed to load USA GeoJSON:", err));
+});
+</script>
+
+</body>
+</html>
