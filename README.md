@@ -2,7 +2,7 @@
 ## Pipelines & Required Files
 
 ### SQL pipeline
-To identify the artist who has the popularity higher than average level for three days.
+To identify the artist who has the popularity higher than average level for two days.
 
 ### Pipeline 1: `graph1`
 **Required files (7 days):**
