@@ -3,10 +3,12 @@
 
 ### SQL pipeline
 `codes` folder, named `0_SQL.ipynb`
+
 To identify the artist who has the popularity higher than average level for two days.
 
 ### Pipeline 1: `graph1`
 `codes` folder, named `1_Pipeline1.ipynb`
+
 **Required files (5 days):**
 - `spotify_artist_top10_albums_{today}.json`  
   *(One file per day for five days)*
@@ -18,6 +20,7 @@ To identify the artist who has the popularity higher than average level for two 
 
 ### Pipeline 2: `graph2`
 `codes` folder, named `1_Pipeline2.ipynb`
+
 **Required files:**
 - `spotify_artist_info_{today}.json`
 - `spotify_artist_tracks_{today}.json`
