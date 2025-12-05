@@ -3,257 +3,162 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Merch Launch Predictor</title>
-  
+  <title>Pop Flow Demo</title>
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- ECharts -->
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 </head>
 
 <body class="bg-gray-50 font-sans">
 
 <header class="bg-white shadow-sm border-b border-gray-200 py-6 mb-6">
   <div class="max-w-5xl mx-auto px-6">
-    <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Pop Flow Demo</h1>
-    <p class="text-gray-500 text-lg mt-1">
-      Big-Data-powered timing & category predictions for artist merchandise
-    </p>
+    <h1 class="text-3xl font-bold text-gray-800 tracking-tight">PopFlow Demo</h1>
+    <p class="text-gray-500 text-lg mt-1">Unlocking Culture Momentum for Smarter IP Commercialization</p>
   </div>
 </header>
 
+<!-- Artist dropdown -->
 <div class="max-w-5xl mx-auto px-6 mb-4">
   <label for="artistSelect" class="block text-gray-700 font-semibold mb-2">Select Artist:</label>
   <select id="artistSelect" class="border border-gray-300 rounded px-3 py-2">
-    <option value="Singer A">Singer A</option>
-    <option value="Singer B">Singer B</option>
-  </select>
+  {% for artist in artists %}
+    <option value="{{ artist.artist_id }}">{{ artist.artist_name }}</option>
+  {% endfor %}
+</select>
 </div>
 
 <main class="max-w-5xl mx-auto px-6 space-y-6">
-  <!-- Artist Card -->
-  <div class="artist-card bg-white p-6 rounded-xl shadow flex items-center space-x-6">
-    <img id="artistImage" src="/static/placeholder.jpg" class="artist-icon w-24 h-24 rounded-full object-cover" />
-    <div class="flex-1">
-      <div id="artistName" class="artist-name text-xl font-semibold text-gray-800">Loading...</div>
-      
-      <!-- Recommendation Score -->
-      <div id="recommendationScore" class="mt-2 text-gray-700 font-medium">
-        Recommendation Score: <span id="scoreValue" class="text-purple-600 font-bold">N/A</span>
-      </div>
 
-      <div class="artist-index mt-4">
-        <canvas id="artistIndexGraph" height="100"></canvas>
-      </div>
-    </div>
+  <!-- Artist Name + Recommendation Score + Line Chart -->
+  <div class="artist-card bg-white p-6 rounded-xl shadow space-y-4">
+    <div id="artistName" class="text-xl font-semibold text-gray-800">Loading...</div>
+
+  <div id="recommendationScore" class="text-gray-700 font-medium flex items-center space-x-4">
+    <span>Recommendation Score:</span>
+    <span id="scoreValue" class="font-bold text-purple-600 text-6xl">N/A</span>
+  </div>
+
+    <canvas id="dailyChart" height="100"></canvas>
   </div>
 
   <!-- Song Popularity Bar Chart -->
   <div class="bg-white p-6 rounded-xl shadow">
-    <h2 class="text-lg font-semibold text-gray-800 mb-4">Song Popularity</h2>
-    <canvas id="songBarChart" height="120"></canvas>
-  </div>
-
-  <!-- US Geo Map -->
-  <div class="bg-white p-6 rounded-xl shadow">
-    <h2 class="text-lg font-semibold text-gray-800 mb-4">US Top Songs by State</h2>
-    <div id="usMap" style="height: 450px;"></div>
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Track Popularity</h2>
+    <canvas id="songChart" height="120"></canvas>
   </div>
 </main>
 
 <script>
-let chartInstanceLine = null;
-let chartInstanceBar = null;
+let lineChart = null;
+let barChart = null;
 
 // -----------------------------
-// Line chart
+// Render daily streams line chart
 function renderLineChart(data) {
-  const ctx = document.getElementById('artistIndexGraph').getContext('2d');
-  if (chartInstanceLine) chartInstanceLine.destroy();
+  const ctx = document.getElementById("dailyChart").getContext("2d");
+  if (lineChart) lineChart.destroy();
 
-  chartInstanceLine = new Chart(ctx, {
-    type: 'line',
+  lineChart = new Chart(ctx, {
+    type: "line",
     data: {
-      labels: data.playback_dates,
+      labels: data.dates,
       datasets: [{
-        label: 'Daily Playback',
-        data: data.playback_counts,
-        borderColor: 'rgb(128, 90, 250)',
+        label: "Daily Streams",
+        data: data.streams,
+        borderColor: "rgb(128, 90, 250)",
         borderWidth: 2,
         tension: 0.3
       }]
-    }
+    },
+    options: { responsive: true }
   });
 }
 
 // -----------------------------
-// Bar chart
+// Render track popularity bar chart
 function renderBarChart(data) {
-  const ctx = document.getElementById('songBarChart').getContext('2d');
-  if (chartInstanceBar) chartInstanceBar.destroy();
+  const ctx = document.getElementById("songChart").getContext("2d");
+  if (barChart) barChart.destroy();
 
-  const songNames = data.song_names || [];
-  const popularity = data.popularities || [];
-
-  chartInstanceBar = new Chart(ctx, {
-    type: 'bar',
+  barChart = new Chart(ctx, {
+    type: "bar",
     data: {
-      labels: songNames,
+      labels: data.track_names,
       datasets: [{
         label: "Popularity",
-        data: popularity,
-        backgroundColor: "rgba(128,90,250,0.7)",
+        data: data.track_popularities,
+        backgroundColor: "rgba(128,90,250,0.7)"
       }]
     },
-    options:{responsive:true}
+    options: { responsive: true }
   });
 }
-
-// -----------------------------
-// US Map currently not working. the problem is that the map is not displaying data. just map.
-// -----------------------------
-
-function renderUSMap(data) {
-  const dom = document.getElementById('usMap');
-  // dispose previous instance if exists
-  const prev = echarts.getInstanceByDom(dom);
-  if (prev) prev.dispose();
-
-  const map = echarts.init(dom);
-
-  const states = Array.isArray(data.states) ? data.states : [];
-  const topSongs = Array.isArray(data.top_songs) ? data.top_songs : [];
-
-  // compute unique songs from topSongs array
-  const uniqueSongs = [...new Set(topSongs.filter(s => s != null && s !== ""))];
-
-  // map each song to a numeric id (start from 1 so 0 can mean 'no data')
-  const songToId = new Map(uniqueSongs.map((s, i) => [s, i + 1]));
-
-  // build formatted data; ensure we don't index out of bounds
-  const formatted = states.map((state, i) => {
-    const song = topSongs[i] || null;
-    return {
-      name: state,
-      value: song ? songToId.get(song) : 0, // numeric value used for visual mapping
-      top_song: song || "N/A"
-    };
-  });
-
-  // debug logs (optional)
-  console.log("uniqueSongs:", uniqueSongs);
-  console.log("songToId:", Array.from(songToId.entries()));
-  console.log("formatted:", formatted);
-
-  map.setOption({
-  tooltip: {
-    trigger: 'item',
-    formatter: params => {
-      const song = params.data?.top_song || "N/A";
-      const state = params.data?.name || params.name || "N/A";
-      return `${state}<br>Top Song: ${song}`;
-    }
-  },
-  visualMap: {
-    min: 1,
-    max: uniqueSongs.length,  // ✅ FIXED
-    type: 'continuous',
-    orient: 'vertical',
-    left: 'right',
-    top: 'middle',
-    inRange: {
-      color: [
-        '#e3f2fd',
-        '#bbdefb',
-        '#90caf9',
-        '#64b5f6',
-        '#42a5f5',
-        '#2196f3'
-      ]
-    }
-  },
-  series: [{
-    name: 'Top song by state',
-    type: 'map',
-    map: 'USA',
-    roam: true,
-    label: { show: true },
-    emphasis: { label: { show: true } },
-    data: formatted   
-  }]
-});
 
 // -----------------------------
 // Recommendation Score
-async function renderRecommendationScore(singerName) {
+async function renderRecommendation(artist_id) {
   try {
-    const res = await fetch(`/api/recommendation?singer_name=${encodeURIComponent(singerName)}`);
+    const res = await fetch(`/api/recommendation?artist_id=${artist_id}`);
     const data = await res.json();
 
-    if (!data.error) {
-      const scoreEl = document.getElementById('scoreValue');
-      scoreEl.textContent = data.score;
+    const score = data.score ?? "N/A";
+    const scoreEl = document.getElementById("scoreValue");
+    scoreEl.textContent = score;
 
-      if (data.score >= 80) scoreEl.className = "text-green-600 font-bold";
-      else if (data.score >= 50) scoreEl.className = "text-yellow-600 font-bold";
-      else scoreEl.className = "text-red-600 font-bold";
+    if (score === "N/A") {
+      scoreEl.className = "font-bold text-gray-400";
+    } else if (score >= 70) {
+      scoreEl.className = "font-bold text-green-600";
+    } else if (score >= 40) {
+      scoreEl.className = "font-bold text-yellow-600";
+    } else {
+      scoreEl.className = "font-bold text-red-600";
     }
-  } catch (e) { console.error("Failed to load recommendation score:", e); }
+  } catch(e) {
+    console.error("Failed to load recommendation:", e);
+  }
 }
 
-
-
 // -----------------------------
-// Load artist data
-async function loadArtist(singerName) {
+// Load all artist data
+async function loadArtist(artist_id) {
+
+  // Daily streams
   try {
-    // Playback Line
-    const resPlayback = await fetch(`/api/playbacks?singer_name=${encodeURIComponent(singerName)}`);
-    const dataPlayback = await resPlayback.json();
-    if (!dataPlayback.error) {
-      document.querySelector('.artist-name').textContent = dataPlayback.singer_name;
-      document.getElementById('artistImage').src = `/static/${dataPlayback.icon_filename}`;
-      renderLineChart(dataPlayback);
+    const resDaily = await fetch(`/api/playbacks?artist_id=${artist_id}`);
+    if (resDaily.ok) {
+      const data = await resDaily.json();
+      document.getElementById("artistName").textContent = data.artist_name;
+      renderLineChart({dates: data.dates, streams: data.streams});
     }
+  } catch(e) { console.error(e); }
 
-    // Song Bar
-    const resSongs = await fetch(`/api/songs?singer_name=${encodeURIComponent(singerName)}`);
-    const dataSongs = await resSongs.json();
-    if (!dataSongs.error) renderBarChart(dataSongs);
+  // Song popularity
+  try {
+    const resSongs = await fetch(`/api/songs?artist_id=${artist_id}`);
+    if (resSongs.ok) {
+      const data = await resSongs.json();
+      renderBarChart({track_names: data.track_names, track_popularities: data.track_popularities});
+    }
+  } catch(e) { console.error(e); }
 
-    // US Map
-    const resStates = await fetch(`/api/state-map?singer_name=${encodeURIComponent(singerName)}`);
-    const dataStates = await resStates.json();
-    if (!dataStates.error) renderUSMap(dataStates);
-
-
-    // Recommendation Score ✅
-    await renderRecommendationScore(singerName);
-    
-  } catch (e) { console.error(e); }
+  // Recommendation Score
+  renderRecommendation(artist_id);
 }
+
 // -----------------------------
-// DOMContentLoaded
+// Init
 document.addEventListener("DOMContentLoaded", () => {
-  const artistSelect = document.getElementById("artistSelect");
+  const select = document.getElementById("artistSelect");
+  if(select.value) loadArtist(select.value);
 
-  // Load USA map JSON first
-  fetch('/static/usa-states.json')
-    .then(res => res.json())
-    .then(json => {
-      echarts.registerMap('USA', json);
-
-      // Load initial artist
-      loadArtist(artistSelect.value);
-
-      // Handle artist change
-      artistSelect.addEventListener("change", () => loadArtist(artistSelect.value));
-    })
-    .catch(err => console.error("Failed to load USA GeoJSON:", err));
+  select.addEventListener("change", () => {
+    loadArtist(select.value);
+  });
 });
 </script>
 

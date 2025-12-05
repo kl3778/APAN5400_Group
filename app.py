@@ -1,45 +1,112 @@
+#this is the DEMO presentation version
 import os
 import pandas as pd
 from flask import Flask, jsonify, render_template, request
 
+#This version is not web-deploy compatible.
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+
+
 app = Flask(__name__)
-
-# Load CSV once at startup
-df = pd.read_csv("daily_playback.csv", parse_dates = ["playback_date"] )  # make sure this file is in project root
-
-# Map for singer icons
-singer_icons = {
-    "Singer A": "singer_a.jpg",
-    "Singer B": "singer_b.jpg"
-}
+#use flask.
+#
 
 
+# Helper function: normalize id
+def normalize_id(x):
+    if not x or not isinstance(x, str):
+        return ""
+    return x.strip()
+
+
+#load csv. The csv file is generated for presentation DEMO purpose only.
+df_playback = pd.read_csv(os.path.join(DATA_DIR, "daily_playback.csv"), parse_dates=["date"])
+df_playback["artist_id"] = df_playback["artist_id"].apply(normalize_id)
+
+df_songs = pd.read_csv(os.path.join(DATA_DIR, "songs_popularity.csv"))
+df_songs["artist_id"] = df_songs["artist_id"].apply(normalize_id)
+
+df_recommendation = pd.read_csv(os.path.join(DATA_DIR, "recommendation_scores.csv"))
+df_recommendation["artist_id"] = df_recommendation["artist_id"].apply(normalize_id)
+
+
+
+#Main page  index api.
 @app.route('/')
 def index():
-    # Default singer icon
-    return render_template('index.html', artist_icon='placeholder.jpg')
+    artists_df = df_playback[['artist_id', 'artist_name']].drop_duplicates()
+    # convert to dict
+    artists = artists_df.to_dict(orient='records')
+    return render_template('index.html', artists=artists)
 
+#API1 daily stream line chart
 @app.route('/api/playbacks')
-def get_playbacks():
-    singer_name = request.args.get('singer_name', 'Singer A')
+def api_playbacks():
+    artist_id = normalize_id(request.args.get("artist_id", ""))
 
-    # Filter CSV for this singer
-    singer_data = df[df['singer_name'] == singer_name].sort_values('playback_date').tail(7)
-    if singer_data.empty:
-        return jsonify({"error": "Singer not found"}), 404
+    df = df_playback[df_playback["artist_id"] == artist_id].sort_values("date").tail(7)
 
-    playback_dates = singer_data['playback_date'].tolist()
-    playback_counts = singer_data['playback_count'].tolist()
-    icon_filename = singer_icons.get(singer_name, "placeholder.jpg")
+    if df.empty:
+        return jsonify({"error": "Artist not found"}), 404
 
     return jsonify({
-        "singer_name": singer_name,
-        "playback_dates": playback_dates,
-        "playback_counts": playback_counts,
-        "icon_filename": icon_filename
+        "artist_name": df.iloc[0]["artist_name"],
+        "dates": df["date"].dt.strftime("%Y-%m-%d").tolist(),
+        "streams": df["daily_streams"].tolist()
     })
 
+
+#API2 Song popularity Bar Chart
+@app.route('/api/songs')
+def api_songs():
+    artist_id = normalize_id(request.args.get("artist_id", ""))
+
+    df = df_songs[df_songs["artist_id"] == artist_id]
+
+    if df.empty:
+        return jsonify({"error": "Artist not found"}), 404
+
+    return jsonify({
+        "track_names": df["track_name"].tolist(),
+        "track_popularities": df["track_popularity"].tolist()
+    })
+
+
+
+#API3 Recommendation score
+@app.route('/api/recommendation')
+def api_recommendation():
+    artist_id = normalize_id(request.args.get("artist_id", ""))
+
+    df = df_recommendation[df_recommendation["artist_id"] == artist_id]
+
+    if df.empty:
+        return jsonify({
+            "artist_id": artist_id,
+            "score": "N/A"
+        })
+
+    score = df.iloc[0]["avg_track_popularity"]
+
+    return jsonify({
+        "artist_id": artist_id,
+        "score": score
+    })
+
+
+
+#run this at last
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Render sets PORT automatically
-    app.run(host="0.0.0.0", port=port, debug=True)
+    from threading import Timer
+    import webbrowser
+
+    def open_browser():
+        webbrowser.open("http://127.0.0.1:5000")
+
+    Timer(1.0, open_browser).start()
+    app.run(host="127.0.0.1", port=5000, debug=False)
+
 
