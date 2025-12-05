@@ -9,7 +9,7 @@ To identify the artist who has the popularity higher than average level for two 
 - `spotify_artist_top10_albums_{today}.json`  
   *(One file per day for five days)*
 **Output**
-- `all_artists_streams.csv`
+- `combined_spotify_daily_with_ids.csv`
  *(One file contains five continuous dates)*
 ---
 
